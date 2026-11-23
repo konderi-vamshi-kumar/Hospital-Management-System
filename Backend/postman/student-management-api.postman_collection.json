@@ -1,0 +1,136 @@
+{
+  "info": {
+    "_postman_id": "04e013a7-6cb2-4763-a9bc-ccb08a86a1d1",
+    "name": "Student Management API",
+    "description": "Try the local sign-up and sign-in endpoints. Run Sign up before Sign in.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "username",
+      "value": "student_demo"
+    },
+    {
+      "key": "password",
+      "value": "LearnJava123!"
+    }
+  ],
+  "item": [
+    {
+      "name": "Sign up",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signup",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "signup"
+          ]
+        },
+        "description": "Creates a user. The password is stored as a BCrypt hash, never as plain text."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Account was created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Response does not include a password hash', function () {",
+              "    pm.expect(pm.response.json()).to.not.have.property('passwordHash');",
+              "});",
+              "pm.collectionVariables.set('username', pm.response.json().username);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sign in",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signin",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "signin"
+          ]
+        },
+        "description": "Checks the username and password against the saved account."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Sign in succeeded', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response does not include a password hash', function () {",
+              "    pm.expect(pm.response.json()).to.not.have.property('passwordHash');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.info.requestName === 'Sign up') {",
+          "    pm.collectionVariables.set('username', 'student_' + Date.now());",
+          "}"
+        ]
+      }
+    }
+  ]
+}

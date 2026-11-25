@@ -1,4 +1,4 @@
-package com.studentmanagement.model;
+package com.hospitalmanagement.model;
 
 public record User(
         long id,

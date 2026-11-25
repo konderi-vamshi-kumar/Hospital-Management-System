@@ -1,4 +1,4 @@
-package com.studentmanagement.controller;
+package com.hospitalmanagement.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:sqlite:file:student-management-test?mode=memory&cache=shared",
+        "spring.datasource.url=jdbc:sqlite:file:hospital-management-test?mode=memory&cache=shared",
         "spring.datasource.hikari.maximum-pool-size=1",
         "spring.datasource.hikari.minimum-idle=1"
 })
@@ -32,7 +32,7 @@ class AuthControllerIntegrationTest {
 
     @Test
     void usersCanCreateAnAccountAndSignInWithIt() throws Exception {
-        String username = "student_"
+        String username = "hospital_"
                 + UUID.randomUUID().toString().replace("-", "").substring(0, 20);
         String password = "learning123";
         String signUpRequest = objectMapper.writeValueAsString(Map.of(

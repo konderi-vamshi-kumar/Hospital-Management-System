@@ -1,11 +1,11 @@
-package com.studentmanagement.service;
+package com.hospitalmanagement.service;
 
-import com.studentmanagement.dto.UserResponse;
-import com.studentmanagement.exception.InvalidCredentialsException;
-import com.studentmanagement.exception.InvalidInputException;
-import com.studentmanagement.exception.UsernameAlreadyExistsException;
-import com.studentmanagement.model.User;
-import com.studentmanagement.repository.UserRepository;
+import com.hospitalmanagement.dto.UserResponse;
+import com.hospitalmanagement.exception.InvalidCredentialsException;
+import com.hospitalmanagement.exception.InvalidInputException;
+import com.hospitalmanagement.exception.UsernameAlreadyExistsException;
+import com.hospitalmanagement.model.User;
+import com.hospitalmanagement.repository.UserRepository;
 import java.nio.charset.StandardCharsets;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;

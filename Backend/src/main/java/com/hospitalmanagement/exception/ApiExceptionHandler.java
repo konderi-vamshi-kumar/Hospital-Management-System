@@ -1,6 +1,6 @@
-package com.studentmanagement.exception;
+package com.hospitalmanagement.exception;
 
-import com.studentmanagement.dto.ApiErrorResponse;
+import com.hospitalmanagement.dto.ApiErrorResponse;
 import java.time.Instant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

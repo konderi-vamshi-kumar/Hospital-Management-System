@@ -1,4 +1,4 @@
-package com.studentmanagement.exception;
+package com.hospitalmanagement.exception;
 
 public class InvalidInputException extends RuntimeException {
 

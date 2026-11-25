@@ -1,9 +1,9 @@
-package com.studentmanagement.controller;
+package com.hospitalmanagement.controller;
 
-import com.studentmanagement.dto.SignInRequest;
-import com.studentmanagement.dto.SignUpRequest;
-import com.studentmanagement.dto.UserResponse;
-import com.studentmanagement.service.AuthService;
+import com.hospitalmanagement.dto.SignInRequest;
+import com.hospitalmanagement.dto.SignUpRequest;
+import com.hospitalmanagement.dto.UserResponse;
+import com.hospitalmanagement.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;

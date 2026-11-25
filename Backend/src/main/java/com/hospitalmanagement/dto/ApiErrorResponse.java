@@ -1,4 +1,4 @@
-package com.studentmanagement.dto;
+package com.hospitalmanagement.dto;
 
 import java.time.Instant;
 

@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.studentmanagement</groupId>
-    <artifactId>student-management-api</artifactId>
+    <groupId>com.hospitalmanagement</groupId>
+    <artifactId>hospital-management-api</artifactId>
     <version>1.0.0</version>
-    <name>student-management-api</name>
-    <description>Beginner-friendly authentication API for the Student Hub frontend</description>
+    <name>hospital-management-api</name>
+    <description>Authentication API for the Hospital Management System frontend</description>
 
     <properties>
         <java.version>21</java.version>

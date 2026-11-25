@@ -1,6 +1,6 @@
-package com.studentmanagement.repository;
+package com.hospitalmanagement.repository;
 
-import com.studentmanagement.model.User;
+import com.hospitalmanagement.model.User;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;

@@ -1,4 +1,4 @@
-# Student Management API
+# Hospital Management System API
 
 This is a small Java backend for the React app in `../Frontend`. It uses
 Spring Boot for HTTP endpoints and SQLite for a local database file.
@@ -39,7 +39,7 @@ Open a terminal in the `Backend` folder:
 ```
 
 When the server is ready, it listens at `http://localhost:8080`. The first
-start creates `Backend/student-management.db` and its `users` table.
+start creates `Backend/hospital-management.db` and its `users` table.
 
 Run the backend tests with:
 
@@ -68,9 +68,9 @@ PowerShell may block the `npm` PowerShell script on some computers. Using
 
 1. Start the backend.
 2. In Postman, choose **Import** and select
-   `Backend/postman/student-management-api.postman_collection.json`.
-3. Open the **Student Management API** collection.
-4. Choose **Sign up**, then **Send**. The example uses `student_demo` and
+   `Backend/postman/hospital-management-api.postman_collection.json`.
+3. Open the **Hospital Management System API** collection.
+4. Choose **Sign up**, then **Send**. The example uses `hospital_demo` and
    `LearnJava123!`.
 5. Choose **Sign in**, then **Send** with the same username and password.
 
@@ -85,7 +85,7 @@ the username before signing up again: usernames must be unique.
 
 ```json
 {
-  "username": "student_demo",
+  "username": "hospital_demo",
   "password": "LearnJava123!"
 }
 ```
@@ -99,7 +99,7 @@ usernames must be 3-30 letters, numbers, or underscores.
 
 ```json
 {
-  "username": "student_demo",
+  "username": "hospital_demo",
   "password": "LearnJava123!"
 }
 ```

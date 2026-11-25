@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "04e013a7-6cb2-4763-a9bc-ccb08a86a1d1",
-    "name": "Student Management API",
+    "name": "Hospital Management System API",
     "description": "Try the local sign-up and sign-in endpoints. Run Sign up before Sign in.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -12,7 +12,7 @@
     },
     {
       "key": "username",
-      "value": "student_demo"
+      "value": "hospital_demo"
     },
     {
       "key": "password",
@@ -127,7 +127,7 @@
         "type": "text/javascript",
         "exec": [
           "if (pm.info.requestName === 'Sign up') {",
-          "    pm.collectionVariables.set('username', 'student_' + Date.now());",
+          "    pm.collectionVariables.set('username', 'hospital_' + Date.now());",
           "}"
         ]
       }

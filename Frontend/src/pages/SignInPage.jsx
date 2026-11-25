@@ -4,15 +4,20 @@ import FormField from "../components/FormField.jsx";
 
 function SignInPage({
   notice,
+  noticeIsError,
   signedInUsername,
   onSignIn,
   onSignOut,
+  onAcceptInvitation,
   onShowSignUp,
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [invitationError, setInvitationError] = useState("");
+  const [isAcceptingInvitation, setIsAcceptingInvitation] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -25,6 +30,20 @@ function SignInPage({
       setErrorMessage(error.message);
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleAcceptInvitation(event) {
+    event.preventDefault();
+    setInvitationError("");
+    setIsAcceptingInvitation(true);
+    try {
+      await onAcceptInvitation(inviteCode.trim());
+      setInviteCode("");
+    } catch (error) {
+      setInvitationError(error.message);
+    } finally {
+      setIsAcceptingInvitation(false);
     }
   }
 
@@ -43,6 +62,44 @@ function SignInPage({
         <div className="success-mark" aria-hidden="true">
           ✓
         </div>
+        {notice && (
+          <p
+            className={`form-message ${noticeIsError ? "error-message" : "success-message"}`}
+            role={noticeIsError ? "alert" : "status"}
+          >
+            {notice}
+          </p>
+        )}
+        <form className="auth-form" onSubmit={handleAcceptInvitation}>
+          <p className="form-description">
+            Have a staff invitation code? Enter it here to activate your
+            hospital access.
+          </p>
+          <label className="form-field" htmlFor="staff-invite-code">
+            <span>Invitation code</span>
+            <input
+              id="staff-invite-code"
+              autoComplete="off"
+              maxLength={43}
+              minLength={43}
+              required
+              value={inviteCode}
+              onChange={(event) => setInviteCode(event.target.value)}
+            />
+          </label>
+          {invitationError && (
+            <p className="form-message error-message" role="alert">
+              {invitationError}
+            </p>
+          )}
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={isAcceptingInvitation}
+          >
+            {isAcceptingInvitation ? "Accepting invitation..." : "Accept invitation"}
+          </button>
+        </form>
       </AuthCard>
     );
   }
@@ -63,7 +120,10 @@ function SignInPage({
     >
       <form className="auth-form" onSubmit={handleSubmit}>
         {notice && (
-          <p className="form-message success-message" role="status">
+          <p
+            className={`form-message ${noticeIsError ? "error-message" : "success-message"}`}
+            role={noticeIsError ? "alert" : "status"}
+          >
             {notice}
           </p>
         )}

@@ -63,3 +63,20 @@ CREATE TABLE IF NOT EXISTS departments (
 
 CREATE INDEX IF NOT EXISTS idx_departments_hospital
     ON departments (hospital_id, status);
+
+CREATE TABLE IF NOT EXISTS staff_invitations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hospital_id INTEGER NOT NULL REFERENCES hospitals(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('HOSPITAL_ADMIN', 'DOCTOR')),
+    token_hash TEXT NOT NULL UNIQUE CHECK (length(token_hash) = 64),
+    status TEXT NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'ACCEPTED', 'REVOKED')),
+    invited_by_user_id INTEGER NOT NULL REFERENCES users(id),
+    accepted_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    expires_at TEXT NOT NULL,
+    accepted_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_staff_invitations_hospital
+    ON staff_invitations (hospital_id, status, expires_at);

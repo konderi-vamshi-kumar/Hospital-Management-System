@@ -21,7 +21,12 @@ function StatusBadge({ status }) {
   );
 }
 
-function PlatformAdminPage({ currentUser, notice: appNotice, onSignOut }) {
+function PlatformAdminPage({
+  currentUser,
+  notice: appNotice,
+  noticeIsError,
+  onSignOut,
+}) {
   const [hospitals, setHospitals] = useState([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState("");
   const [branches, setBranches] = useState([]);
@@ -275,7 +280,10 @@ function PlatformAdminPage({ currentUser, notice: appNotice, onSignOut }) {
         </p>
       )}
       {appNotice && (
-        <p className="form-message error-message" role="alert">
+        <p
+          className={`form-message ${noticeIsError ? "error-message" : "success-message"}`}
+          role={noticeIsError ? "alert" : "status"}
+        >
           {appNotice}
         </p>
       )}

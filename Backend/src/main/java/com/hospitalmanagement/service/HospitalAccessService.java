@@ -31,4 +31,23 @@ public class HospitalAccessService {
                 .isPresent()
                 && userRepository.hasActiveHospitalMembership(user.id(), hospitalId);
     }
+
+    public boolean isHospitalAdmin(String username, long hospitalId) {
+        return userRepository.findByUsername(username)
+                .filter(user -> hospitalRepository.findById(hospitalId)
+                        .filter(hospital -> hospital.status().equals("ACTIVE"))
+                        .isPresent()
+                        && userRepository.hasActiveHospitalMembership(
+                                user.id(),
+                                hospitalId,
+                                "HOSPITAL_ADMIN"
+                        ))
+                .isPresent();
+    }
+
+    public boolean hasActiveHospitalAdminMembership(String username) {
+        return userRepository.findByUsername(username)
+                .filter(user -> userRepository.hasActiveHospitalAdminMembership(user.id()))
+                .isPresent();
+    }
 }

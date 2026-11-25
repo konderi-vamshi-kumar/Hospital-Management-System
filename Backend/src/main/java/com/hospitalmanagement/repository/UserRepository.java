@@ -92,6 +92,52 @@ public class UserRepository {
         return membershipCount != null && membershipCount > 0;
     }
 
+    public boolean hasActiveHospitalMembership(long userId, long hospitalId, String role) {
+        Integer membershipCount = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM hospital_memberships
+                WHERE user_id = ? AND hospital_id = ? AND role = ? AND status = 'ACTIVE'
+                """,
+                Integer.class,
+                userId,
+                hospitalId,
+                role
+        );
+        return membershipCount != null && membershipCount > 0;
+    }
+
+    public boolean hasActiveHospitalAdminMembership(long userId) {
+        Integer membershipCount = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM hospital_memberships memberships
+                JOIN hospitals ON hospitals.id = memberships.hospital_id
+                WHERE memberships.user_id = ?
+                  AND memberships.role = 'HOSPITAL_ADMIN'
+                  AND memberships.status = 'ACTIVE'
+                  AND hospitals.status = 'ACTIVE'
+                """,
+                Integer.class,
+                userId
+        );
+        return membershipCount != null && membershipCount > 0;
+    }
+
+    public void activateHospitalMembership(long userId, long hospitalId, String role) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO hospital_memberships (user_id, hospital_id, role, status)
+                VALUES (?, ?, ?, 'ACTIVE')
+                ON CONFLICT (user_id, hospital_id, role)
+                DO UPDATE SET status = 'ACTIVE'
+                """,
+                userId,
+                hospitalId,
+                role
+        );
+    }
+
     public void insertGlobalRole(long userId, String role) {
         jdbcTemplate.update(
                 "INSERT OR IGNORE INTO user_roles (user_id, role) VALUES (?, ?)",

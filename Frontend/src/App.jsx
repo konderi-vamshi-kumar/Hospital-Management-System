@@ -2,19 +2,28 @@ import { useEffect, useState } from "react";
 import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import PlatformAdminPage from "./features/platform-admin/PlatformAdminPage.jsx";
+import HospitalAdminPage from "./features/hospital-admin/HospitalAdminPage.jsx";
 import {
   getCurrentUser,
   signIn,
   signOut,
   signUp,
 } from "./services/authApi.js";
+import { acceptStaffInvitation } from "./services/hospitalAdminApi.js";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("signin");
   const [currentUser, setCurrentUser] = useState(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [notice, setNotice] = useState("");
+  const [noticeIsError, setNoticeIsError] = useState(false);
   const isPlatformAdmin = currentUser?.roles?.includes("SUPER_ADMIN") || false;
+  const isHospitalAdmin =
+    currentUser?.hospitalMemberships?.some(
+      (membership) =>
+        membership.role === "HOSPITAL_ADMIN" && membership.status === "ACTIVE",
+    ) || false;
+  const isAdminDashboard = isPlatformAdmin || isHospitalAdmin;
 
   useEffect(() => {
     let isMounted = true;
@@ -28,6 +37,7 @@ function App() {
       .catch((error) => {
         if (isMounted) {
           setNotice(error.message);
+          setNoticeIsError(true);
         }
       })
       .finally(() => {
@@ -43,7 +53,10 @@ function App() {
 
   async function handleSignUp(username, password) {
     const user = await signUp(username, password);
-    setNotice(`Patient account created for ${user.username}. Sign in to continue.`);
+    setNotice(
+      `Account created for ${user.username}. Sign in to continue. If you have a staff invitation, you can accept its code after signing in.`,
+    );
+    setNoticeIsError(false);
     setCurrentPage("signin");
   }
 
@@ -51,6 +64,7 @@ function App() {
     const user = await signIn(username, password);
     setCurrentUser(user);
     setNotice("");
+    setNoticeIsError(false);
   }
 
   async function handleSignOut() {
@@ -58,13 +72,48 @@ function App() {
       await signOut();
       setCurrentUser(null);
       setNotice("");
+      setNoticeIsError(false);
     } catch (error) {
       setNotice(error.message);
+      setNoticeIsError(true);
     }
   }
 
+  async function handleAcceptInvitation(inviteCode) {
+    const accepted = await acceptStaffInvitation(inviteCode);
+    setCurrentUser((user) => {
+      if (!user) {
+        return user;
+      }
+      const membership = {
+        hospitalId: accepted.hospitalId,
+        role: accepted.role,
+        status: accepted.status,
+      };
+      const existingMemberships = user.hospitalMemberships || [];
+      const alreadyPresent = existingMemberships.some(
+        (item) =>
+          item.hospitalId === membership.hospitalId &&
+          item.role === membership.role,
+      );
+      return {
+        ...user,
+        hospitalMemberships: alreadyPresent
+          ? existingMemberships.map((item) =>
+              item.hospitalId === membership.hospitalId &&
+              item.role === membership.role
+                ? membership
+                : item,
+            )
+          : [...existingMemberships, membership],
+      };
+    });
+    setNotice(`Invitation accepted. Your ${accepted.role} access is active.`);
+    setNoticeIsError(false);
+  }
+
   return (
-    <main className={`app-shell${isPlatformAdmin ? " app-shell-admin" : ""}`}>
+    <main className={`app-shell${isAdminDashboard ? " app-shell-admin" : ""}`}>
       <header className="site-header">
         <a
           className="brand"
@@ -78,11 +127,15 @@ function App() {
           <span>Hospital Management System</span>
         </a>
         <span className="header-note">
-          {isPlatformAdmin ? "Platform administration" : "A good place to get started"}
+          {isPlatformAdmin
+            ? "Platform administration"
+            : isHospitalAdmin
+              ? "Hospital administration"
+              : "A good place to get started"}
         </span>
       </header>
 
-      {!isPlatformAdmin && <section className="welcome-panel" aria-label="Welcome">
+      {!isAdminDashboard && <section className="welcome-panel" aria-label="Welcome">
         <div className="welcome-copy">
           <span className="eyebrow">YOUR NEXT CHAPTER</span>
           <h1>Small steps.<br />Bright futures.</h1>
@@ -106,6 +159,14 @@ function App() {
           <PlatformAdminPage
             currentUser={currentUser}
             notice={notice}
+            noticeIsError={noticeIsError}
+            onSignOut={handleSignOut}
+          />
+        ) : isHospitalAdmin ? (
+          <HospitalAdminPage
+            currentUser={currentUser}
+            notice={notice}
+            noticeIsError={noticeIsError}
             onSignOut={handleSignOut}
           />
         ) : currentPage === "signup" && !currentUser ? (
@@ -113,17 +174,21 @@ function App() {
             onSignUp={handleSignUp}
             onShowSignIn={() => {
               setNotice("");
+              setNoticeIsError(false);
               setCurrentPage("signin");
             }}
           />
         ) : (
           <SignInPage
             notice={notice}
+            noticeIsError={noticeIsError}
             signedInUsername={currentUser?.username || ""}
             onSignIn={handleSignIn}
             onSignOut={handleSignOut}
+            onAcceptInvitation={handleAcceptInvitation}
             onShowSignUp={() => {
               setNotice("");
+              setNoticeIsError(false);
               setCurrentPage("signup");
             }}
           />

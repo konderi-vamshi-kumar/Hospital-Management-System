@@ -104,8 +104,9 @@ above, sign in with that account, and call the `/api/platform/hospitals`
 endpoints below. Keep the Postman cookie jar enabled and send a fresh CSRF
 token with each state-changing request.
 
-The collection has `baseUrl`, `username`, and `password` variables. Change
-the username before signing up again: usernames must be unique.
+The collection has `baseUrl`, `username`, and `password` variables for
+patient authentication, plus separate super-admin and onboarding variables.
+Change the patient username before signing up again: usernames must be unique.
 
 ## Endpoints
 
@@ -128,8 +129,8 @@ requests.
 }
 ```
 
-Public sign-up creates a patient account only. Hospital staff accounts will be
-provisioned through invitations in a later phase.
+Public sign-up creates a patient account. A signed-in user can accept a
+hospital staff invitation to receive a hospital-scoped staff membership.
 
 Success response: **201 Created**. Passwords must be at least 8 characters;
 usernames must be 3-30 letters, numbers, or underscores.
@@ -181,20 +182,68 @@ All routes in this section require a signed-in account with the
 | `PUT` | `/api/platform/hospitals/{hospitalId}/departments/{departmentId}` | Update department details or status |
 | `GET`, `POST` | `/api/platform/hospitals/{hospitalId}/administrators` | List or assign hospital administrators |
 
-For now, the person assigned as a hospital administrator must already have an
-account. Register that account first, then assign it by username in the
-platform dashboard. Assignment is repeatable and reactivates an existing
-administrator membership. Invitation emails are not part of this phase.
-Branch and department names are case-insensitively unique within their
-hospital. Deactivation is used instead of deleting records.
+The platform super-admin can assign an existing account as the initial
+hospital administrator. Assignment is repeatable and reactivates an existing
+administrator membership. Branch and department names are
+case-insensitively unique within their hospital. Deactivation is used instead
+of deleting records.
 
 The platform dashboard appears after a `SUPER_ADMIN` signs in. It provides
 hospital, branch, department, and administrator setup in the React frontend.
 
+## Hospital administration and staff invitations
+
+Hospital administrators use the same sign-in portal. After signing in, an
+account with an active `HOSPITAL_ADMIN` membership sees the hospital-admin
+workspace. The backend checks that membership and active hospital status on
+every hospital-admin route; another hospital's IDs are forbidden.
+
+| Method | Route | Purpose |
+|---|---|---|
+| `GET` | `/api/hospital-admin/hospitals` | List the signed-in admin's active hospitals |
+| `GET`, `POST` | `/api/hospital-admin/hospitals/{hospitalId}/branches` | List or add branches |
+| `PUT` | `/api/hospital-admin/hospitals/{hospitalId}/branches/{branchId}` | Update a branch or its status |
+| `GET`, `POST` | `/api/hospital-admin/hospitals/{hospitalId}/departments` | List or add departments |
+| `PUT` | `/api/hospital-admin/hospitals/{hospitalId}/departments/{departmentId}` | Update a department or its status |
+| `GET`, `POST` | `/api/hospital-admin/hospitals/{hospitalId}/invitations` | List or create staff invitations |
+| `DELETE` | `/api/hospital-admin/hospitals/{hospitalId}/invitations/{invitationId}` | Revoke a pending invitation |
+| `POST` | `/api/invitations/accept` | Accept an invitation while signed in |
+
+Hospital admins can invite another `HOSPITAL_ADMIN` or a `DOCTOR`. Invitations
+are delivered as one-time codes to copy and share manually; email delivery is
+not configured. Codes expire after seven days, are stored as SHA-256 hashes,
+and can only be accepted once. The invitee creates an account or signs in,
+then submits the code from the signed-in page. The acceptance adds an active
+hospital membership without changing the account's global patient role.
+
+Invitation creation request:
+
+```json
+{
+  "role": "DOCTOR"
+}
+```
+
+Invitation acceptance request:
+
+```json
+{
+  "inviteCode": "paste-the-one-time-code-here"
+}
+```
+
+The raw code is returned only when the invitation is created. The invitation
+list never returns it.
+
+After accepting a hospital-admin invitation, sign-in opens the hospital
+administration workspace. Staff can create, edit, activate, or deactivate
+branches and departments only within their assigned active hospital. Other
+hospital IDs return **403 Forbidden**.
+
 ## Where to find things
 
-- `src/main/java/.../controller`: receives authentication and platform requests.
-- `src/main/java/.../service`: applies authentication and platform onboarding rules.
+- `src/main/java/.../controller`: receives authentication, platform, and hospital-admin requests.
+- `src/main/java/.../service`: applies authentication, onboarding, and invitation rules.
 - `src/main/java/.../repository`: reads and writes user records with SQL.
 - `src/main/java/.../model`: describes a saved user.
 - `src/main/java/.../dto`: describes request and response data.
@@ -203,14 +252,14 @@ hospital, branch, department, and administrator setup in the React frontend.
 - `src/main/java/.../hospital`: hospital records and platform hospital endpoints.
 - `src/main/java/.../branch`: branch records and database access.
 - `src/main/java/.../department`: department records and database access.
-- `src/main/java/.../membership`: hospital administrator assignments.
-- `src/main/resources/schema.sql`: creates identity, role, hospital, branch, department, and membership tables.
-- `src/test/java/...`: checks authentication and platform onboarding endpoints.
+- `src/main/java/.../membership`: hospital memberships and one-time staff invitations.
+- `src/main/resources/schema.sql`: creates identity, role, hospital, branch, department, membership, and invitation tables.
+- `src/test/java/...`: checks authentication, onboarding, tenant access, and invitations.
 - `postman`: ready-to-import Postman collection.
 
 SQLite stores a BCrypt password hash, not the original password. Sessions use
 HTTP-only cookies, and state-changing requests require a CSRF token. Phase 1
 provides authentication and role foundations. Phase 2 implements super-admin
-hospital, branch, department, and hospital-administrator onboarding. Doctor
-rosters, patient appointment booking, and tenant-scoped business workflows are
-planned for later phases.
+onboarding. Phase 3 adds hospital-admin branch/department management and
+hospital-scoped staff invitations. Doctor profiles, rosters, patient
+appointment booking, and appointment workflows are planned for later phases.

@@ -28,14 +28,16 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+select:focus-visible {
   outline: 3px solid #d59d5a;
   outline-offset: 3px;
 }
@@ -329,7 +331,8 @@ textarea:focus-visible {
 }
 
 .platform-form input,
-.platform-form textarea {
+.platform-form textarea,
+.platform-form select {
   width: 100%;
   min-height: 42px;
   padding: 10px 12px;
@@ -416,12 +419,14 @@ textarea:focus-visible {
 }
 
 .status-inactive,
-.status-disabled {
+.status-disabled,
+.status-expired {
   background: #f2f2ef;
   color: #777e77;
 }
 
-.status-invited {
+.status-invited,
+.status-pending {
   background: #fff5e6;
   color: #8d6320;
 }
@@ -446,6 +451,70 @@ textarea:focus-visible {
 .primary-button:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.hospital-selector {
+  display: grid;
+  max-width: 420px;
+  gap: 8px;
+  color: #3c453e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hospital-selector select {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #e3e6df;
+  border-radius: 7px;
+  background: #fff;
+  color: #242a25;
+}
+
+.resource-editor {
+  flex: 0 1 100%;
+}
+
+.resource-editor summary {
+  display: inline-block;
+  list-style: none;
+  cursor: pointer;
+}
+
+.resource-editor summary::-webkit-details-marker {
+  display: none;
+}
+
+.resource-editor form {
+  margin-top: 12px;
+}
+
+.invite-code-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid #dfe5dc;
+  border-radius: 8px;
+  background: #f7faf5;
+}
+
+.invite-code-panel label {
+  color: #3c453e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.invite-code-panel textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e3e6df;
+  border-radius: 7px;
+  background: #fff;
+  color: #242a25;
+  font-family: monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .platform-empty {

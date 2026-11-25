@@ -47,6 +47,24 @@ public class HospitalRepository {
         ).stream().findFirst();
     }
 
+    public List<Hospital> findActiveForHospitalAdministrator(long userId) {
+        return jdbcTemplate.query(
+                """
+                SELECT hospitals.id, hospitals.name, hospitals.status, hospitals.created_at
+                FROM hospitals
+                JOIN hospital_memberships memberships
+                  ON memberships.hospital_id = hospitals.id
+                WHERE memberships.user_id = ?
+                  AND memberships.role = 'HOSPITAL_ADMIN'
+                  AND memberships.status = 'ACTIVE'
+                  AND hospitals.status = 'ACTIVE'
+                ORDER BY hospitals.name COLLATE NOCASE, hospitals.id
+                """,
+                HOSPITAL_ROW_MAPPER,
+                userId
+        );
+    }
+
     public Hospital insert(String name) {
         return jdbcTemplate.query(
                 """

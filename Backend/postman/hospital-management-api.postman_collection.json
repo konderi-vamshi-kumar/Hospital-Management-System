@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "04e013a7-6cb2-4763-a9bc-ccb08a86a1d1",
     "name": "Hospital Management System API",
-    "description": "Try patient sign-up and session authentication. Run Get CSRF token before state-changing requests.",
+    "description": "Try patient authentication and super-admin hospital onboarding. Run Get CSRF token before state-changing requests.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -20,6 +20,26 @@
     },
     {
       "key": "csrfToken",
+      "value": ""
+    },
+    {
+      "key": "superAdminUsername",
+      "value": ""
+    },
+    {
+      "key": "superAdminPassword",
+      "value": ""
+    },
+    {
+      "key": "hospitalName",
+      "value": "Postman Demo Hospital"
+    },
+    {
+      "key": "hospitalId",
+      "value": ""
+    },
+    {
+      "key": "adminUsername",
       "value": ""
     }
   ],
@@ -211,6 +231,176 @@
         },
         "description": "Invalidates the current session."
       }
+    },
+    {
+      "name": "Platform hospital onboarding",
+      "description": "Sign in using the configured super-admin account, then onboard the hospital and its resources. The administrator username must already belong to a registered account.",
+      "item": [
+        {
+          "name": "Sign in as super-admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-XSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{superAdminUsername}}\",\n  \"password\": \"{{superAdminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signin"
+            },
+            "description": "Set superAdminUsername and superAdminPassword to the values configured for the backend."
+          }
+        },
+        {
+          "name": "List hospitals",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/platform/hospitals"
+            }
+          }
+        },
+        {
+          "name": "Create hospital",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-XSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{hospitalName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/platform/hospitals"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Hospital was created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set('hospitalId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-XSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Central Branch\",\n  \"address\": \"12 Main Road\",\n  \"phone\": \"0112345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/platform/hospitals/{{hospitalId}}/branches"
+            }
+          }
+        },
+        {
+          "name": "Create department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-XSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cardiology\",\n  \"description\": \"Heart care\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/platform/hospitals/{{hospitalId}}/departments"
+            }
+          }
+        },
+        {
+          "name": "Assign hospital administrator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-XSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{adminUsername}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/platform/hospitals/{{hospitalId}}/administrators"
+            }
+          }
+        }
+      ]
     }
   ],
   "event": [

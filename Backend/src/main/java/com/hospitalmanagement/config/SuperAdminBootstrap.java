@@ -23,8 +23,8 @@ public class SuperAdminBootstrap implements ApplicationRunner {
             @Value("${app.bootstrap-super-admin.password:}") String password
     ) {
         this.authService = authService;
-        this.username = username;
-        this.password = password;
+        this.username = normalizeValue(username);
+        this.password = normalizeValue(password);
     }
 
     @Override
@@ -45,5 +45,15 @@ public class SuperAdminBootstrap implements ApplicationRunner {
         }
 
         authService.ensureSuperAdmin(username, password);
+    }
+
+    private String normalizeValue(String value) {
+        String trimmed = value.trim();
+        if (trimmed.length() >= 2
+                && ((trimmed.startsWith("\"") && trimmed.endsWith("\""))
+                || (trimmed.startsWith("'") && trimmed.endsWith("'")))) {
+            return trimmed.substring(1, trimmed.length() - 1);
+        }
+        return trimmed;
     }
 }

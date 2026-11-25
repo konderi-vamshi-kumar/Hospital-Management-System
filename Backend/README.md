@@ -1,8 +1,8 @@
 # Hospital Management System API
 
 This is the Java backend for the React app in `../Frontend`. It uses Spring
-Boot, Spring Security, and SQLite. The current authentication flow creates
-patient accounts and maintains sign-in using an HTTP-only session cookie.
+Boot, Spring Security, and SQLite. Patients and staff sign in through the same
+authentication API; the signed-in role determines which features are shown.
 
 ## What you need
 
@@ -57,7 +57,8 @@ The username must contain 3-30 letters, numbers, or underscores. The password
 must be at least 12 characters and no more than 72 UTF-8 bytes. The password
 is BCrypt-hashed before storage. If the configured username already exists,
 startup grants that account the super-admin role without changing its
-password. Do not put real credentials in source files.
+password. A local `Backend/.env` properties file is loaded when present and is
+ignored by Git. Do not put real credentials in tracked source files.
 
 For local HTTP development, the session cookie is configured for localhost.
 For an HTTPS deployment, set `SESSION_COOKIE_SECURE=true`.
@@ -97,6 +98,11 @@ PowerShell may block the `npm` PowerShell script on some computers. Using
    `LearnJava123!`.
 6. Choose **Sign in**, then **Send** with the same username and password.
 7. Use **Current user** to verify the session, then **Sign out** to end it.
+
+To try platform onboarding, configure the super-admin credentials described
+above, sign in with that account, and call the `/api/platform/hospitals`
+endpoints below. Keep the Postman cookie jar enabled and send a fresh CSRF
+token with each state-changing request.
 
 The collection has `baseUrl`, `username`, and `password` variables. Change
 the username before signing up again: usernames must be unique.
@@ -158,20 +164,53 @@ hospital memberships; it never includes a password hash.
 Requires the session cookie and CSRF token. Success returns **204 No Content**
 and invalidates the session.
 
+## Platform hospital onboarding
+
+All routes in this section require a signed-in account with the
+`SUPER_ADMIN` role and a valid CSRF token for POST and PUT requests.
+
+| Method | Route | Purpose |
+|---|---|---|
+| `GET` | `/api/platform/hospitals` | List hospitals |
+| `POST` | `/api/platform/hospitals` | Create a hospital with its name |
+| `GET` | `/api/platform/hospitals/{hospitalId}` | View hospital details |
+| `PUT` | `/api/platform/hospitals/{hospitalId}` | Update name or set status to `ACTIVE`/`INACTIVE` |
+| `GET`, `POST` | `/api/platform/hospitals/{hospitalId}/branches` | List or add branches |
+| `PUT` | `/api/platform/hospitals/{hospitalId}/branches/{branchId}` | Update branch details or status |
+| `GET`, `POST` | `/api/platform/hospitals/{hospitalId}/departments` | List or add departments |
+| `PUT` | `/api/platform/hospitals/{hospitalId}/departments/{departmentId}` | Update department details or status |
+| `GET`, `POST` | `/api/platform/hospitals/{hospitalId}/administrators` | List or assign hospital administrators |
+
+For now, the person assigned as a hospital administrator must already have an
+account. Register that account first, then assign it by username in the
+platform dashboard. Assignment is repeatable and reactivates an existing
+administrator membership. Invitation emails are not part of this phase.
+Branch and department names are case-insensitively unique within their
+hospital. Deactivation is used instead of deleting records.
+
+The platform dashboard appears after a `SUPER_ADMIN` signs in. It provides
+hospital, branch, department, and administrator setup in the React frontend.
+
 ## Where to find things
 
-- `src/main/java/.../controller`: receives HTTP requests.
-- `src/main/java/.../service`: contains sign-up and sign-in rules.
+- `src/main/java/.../controller`: receives authentication and platform requests.
+- `src/main/java/.../service`: applies authentication and platform onboarding rules.
 - `src/main/java/.../repository`: reads and writes user records with SQL.
 - `src/main/java/.../model`: describes a saved user.
 - `src/main/java/.../dto`: describes request and response data.
 - `src/main/java/.../exception`: turns expected errors into clear API responses.
 - `src/main/java/.../security`: loads account roles and formats security errors.
-- `src/main/resources/schema.sql`: creates identity, role, hospital, and membership tables.
-- `src/test/java/...`: checks the sign-up and sign-in endpoints.
+- `src/main/java/.../hospital`: hospital records and platform hospital endpoints.
+- `src/main/java/.../branch`: branch records and database access.
+- `src/main/java/.../department`: department records and database access.
+- `src/main/java/.../membership`: hospital administrator assignments.
+- `src/main/resources/schema.sql`: creates identity, role, hospital, branch, department, and membership tables.
+- `src/test/java/...`: checks authentication and platform onboarding endpoints.
 - `postman`: ready-to-import Postman collection.
 
 SQLite stores a BCrypt password hash, not the original password. Sessions use
-HTTP-only cookies, and POST requests require a CSRF token. This phase defines
-the role and hospital-membership foundations; hospital onboarding and
-tenant-scoped business endpoints are implemented in later phases.
+HTTP-only cookies, and state-changing requests require a CSRF token. Phase 1
+provides authentication and role foundations. Phase 2 implements super-admin
+hospital, branch, department, and hospital-administrator onboarding. Doctor
+rosters, patient appointment booking, and tenant-scoped business workflows are
+planned for later phases.

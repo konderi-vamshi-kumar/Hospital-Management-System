@@ -36,3 +36,30 @@ CREATE INDEX IF NOT EXISTS idx_hospital_memberships_user
     ON hospital_memberships (user_id, status);
 CREATE INDEX IF NOT EXISTS idx_hospital_memberships_hospital
     ON hospital_memberships (hospital_id, status);
+
+CREATE TABLE IF NOT EXISTS branches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hospital_id INTEGER NOT NULL REFERENCES hospitals(id) ON DELETE CASCADE,
+    name TEXT NOT NULL COLLATE NOCASE,
+    address TEXT NOT NULL,
+    phone TEXT,
+    status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE')),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    UNIQUE (hospital_id, name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_branches_hospital
+    ON branches (hospital_id, status);
+
+CREATE TABLE IF NOT EXISTS departments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hospital_id INTEGER NOT NULL REFERENCES hospitals(id) ON DELETE CASCADE,
+    name TEXT NOT NULL COLLATE NOCASE,
+    description TEXT,
+    status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE')),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    UNIQUE (hospital_id, name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_departments_hospital
+    ON departments (hospital_id, status);

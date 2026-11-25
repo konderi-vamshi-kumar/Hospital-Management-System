@@ -27,13 +27,15 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
 button:focus-visible,
 a:focus-visible,
-input:focus-visible {
+input:focus-visible,
+textarea:focus-visible {
   outline: 3px solid #d59d5a;
   outline-offset: 3px;
 }
@@ -228,6 +230,234 @@ input:focus-visible {
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
+.platform-page {
+  display: grid;
+  gap: 18px;
+}
+
+.app-shell-admin {
+  grid-template-columns: minmax(0, 1fr);
+  width: min(1320px, calc(100% - 72px));
+}
+
+.platform-header,
+.hospital-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.platform-header h2 {
+  margin: 8px 0 5px;
+  font-family: Manrope, sans-serif;
+  font-size: 30px;
+  letter-spacing: -1px;
+}
+
+.hospital-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.hospital-edit-form input {
+  width: min(390px, 55vw);
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #e3e6df;
+  border-radius: 7px;
+  background: #fdfdfb;
+  color: #242a25;
+  font: inherit;
+  font-size: 13px;
+}
+
+.platform-header p,
+.hospital-summary h3 {
+  margin-bottom: 0;
+}
+
+.platform-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.62fr) minmax(0, 1.8fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.platform-detail,
+.platform-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.platform-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.platform-card {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid #e8e8e1;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgb(46 57 45 / 5%);
+}
+
+.platform-card h3 {
+  margin: 0 0 15px;
+  font-family: Manrope, sans-serif;
+  font-size: 17px;
+}
+
+.platform-card .form-description {
+  margin-top: -6px;
+  margin-bottom: 16px;
+}
+
+.platform-form {
+  display: grid;
+  gap: 9px;
+}
+
+.platform-form label {
+  margin-top: 3px;
+  color: #3c453e;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.platform-form input,
+.platform-form textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #e3e6df;
+  border-radius: 7px;
+  background: #fdfdfb;
+  color: #242a25;
+  font-size: 12px;
+}
+
+.platform-form textarea {
+  resize: vertical;
+}
+
+.platform-form .primary-button {
+  min-height: 42px;
+  margin-top: 5px;
+}
+
+.admin-assignment-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.admin-assignment-form label {
+  grid-column: 1 / -1;
+}
+
+.admin-assignment-form .primary-button {
+  min-width: 190px;
+}
+
+.platform-list {
+  display: grid;
+  gap: 7px;
+  margin: 17px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platform-list-button,
+.resource-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 10px;
+  border: 1px solid #edf0e9;
+  border-radius: 8px;
+  background: #fff;
+  color: #343c35;
+  font-size: 12px;
+  text-align: left;
+}
+
+.platform-list-button {
+  cursor: pointer;
+}
+
+.platform-list-button:hover,
+.platform-list-button.is-selected {
+  border-color: #9fb3a0;
+  background: #f3f7f1;
+}
+
+.resource-list-item {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.resource-list-item > span:first-child {
+  flex: 1 1 100px;
+}
+
+.status-badge {
+  padding: 4px 7px;
+  border-radius: 99px;
+  background: #edf5ed;
+  color: #355d43;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.status-inactive,
+.status-disabled {
+  background: #f2f2ef;
+  color: #777e77;
+}
+
+.status-invited {
+  background: #fff5e6;
+  color: #8d6320;
+}
+
+.secondary-button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #dfe5dc;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--green);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.secondary-button:hover {
+  background: #f3f7f1;
+}
+
+.secondary-button:disabled,
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.platform-empty {
+  margin: 15px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.platform-empty-state {
+  min-height: 200px;
+}
+
 .form-field input::placeholder {
   color: #a0a69e;
 }
@@ -347,6 +577,29 @@ input:focus-visible {
     grid-template-rows: auto auto 1fr auto;
     gap: 0;
     width: min(500px, calc(100% - 40px));
+  }
+
+  .app-shell-admin {
+    grid-template-columns: 1fr;
+    width: min(600px, calc(100% - 32px));
+  }
+
+  .platform-layout,
+  .platform-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-assignment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-assignment-form .primary-button,
+  .admin-assignment-form label {
+    grid-column: 1;
+  }
+
+  .platform-header {
+    align-items: flex-start;
   }
 
   .site-header {

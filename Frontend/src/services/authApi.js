@@ -1,56 +1,10 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-
-let csrfToken;
-
-async function sendRequest(path, options = {}) {
-  let response;
-
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      ...options,
-      credentials: "include",
-    });
-  } catch {
-    throw new Error(
-      "Could not reach the Java server. Check that the backend is running on port 8080.",
-    );
-  }
-
-  const responseText = await response.text();
-  let responseBody = null;
-  if (responseText) {
-    try {
-      responseBody = JSON.parse(responseText);
-    } catch {
-      throw new Error("The Java server returned an unreadable response.");
-    }
-  }
-
-  if (!response.ok) {
-    const error = new Error(
-      responseBody?.message || "The request could not be completed.",
-    );
-    error.status = response.status;
-    throw error;
-  }
-
-  return responseBody;
-}
-
-async function getCsrfToken() {
-  const response = await sendRequest("/api/auth/csrf");
-  csrfToken = response.token;
-  return csrfToken;
-}
+import { apiRequest, clearCsrfToken } from "./apiClient.js";
 
 async function sendAuthRequest(path, username, password) {
-  const token = await getCsrfToken();
-  return sendRequest(path, {
+  return apiRequest(path, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-XSRF-TOKEN": token,
     },
     body: JSON.stringify({ username, password }),
   });
@@ -66,7 +20,7 @@ export function signIn(username, password) {
 
 export async function getCurrentUser() {
   try {
-    return await sendRequest("/api/auth/me");
+    return await apiRequest("/api/auth/me");
   } catch (error) {
     if (error.status === 401) {
       return null;
@@ -76,12 +30,8 @@ export async function getCurrentUser() {
 }
 
 export async function signOut() {
-  const token = await getCsrfToken();
-  await sendRequest("/api/auth/signout", {
+  await apiRequest("/api/auth/signout", {
     method: "POST",
-    headers: {
-      "X-XSRF-TOKEN": token,
-    },
   });
-  csrfToken = undefined;
+  clearCsrfToken();
 }

@@ -1,28 +1,64 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
-import { signIn, signUp } from "./services/authApi.js";
+import {
+  getCurrentUser,
+  signIn,
+  signOut,
+  signUp,
+} from "./services/authApi.js";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("signin");
-  const [signedInUsername, setSignedInUsername] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getCurrentUser()
+      .then((user) => {
+        if (isMounted) {
+          setCurrentUser(user);
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setNotice(error.message);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsCheckingSession(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   async function handleSignUp(username, password) {
     const user = await signUp(username, password);
-    setNotice(`Account created for ${user.username}. Sign in to continue.`);
+    setNotice(`Patient account created for ${user.username}. Sign in to continue.`);
     setCurrentPage("signin");
   }
 
   async function handleSignIn(username, password) {
     const user = await signIn(username, password);
-    setSignedInUsername(user.username);
+    setCurrentUser(user);
     setNotice("");
   }
 
-  function handleSignOut() {
-    setSignedInUsername("");
-    setNotice("");
+  async function handleSignOut() {
+    try {
+      await signOut();
+      setCurrentUser(null);
+      setNotice("");
+    } catch (error) {
+      setNotice(error.message);
+    }
   }
 
   return (
@@ -34,7 +70,9 @@ function App() {
           aria-label="Hospital Management System home"
           onClick={() => {
             setCurrentPage("signin");
-            handleSignOut();
+            if (currentUser) {
+              handleSignOut();
+            }
           }}
         >
           <span className="brand-mark" aria-hidden="true">
@@ -50,8 +88,8 @@ function App() {
           <span className="eyebrow">YOUR NEXT CHAPTER</span>
           <h1>Small steps.<br />Bright futures.</h1>
           <p>
-            Sign in to pick up where you left off, or create an account to
-            begin.
+            Sign in to manage your appointments, or create a patient account to
+            get started.
           </p>
         </div>
         <div className="sunrise-art" aria-hidden="true">
@@ -63,7 +101,9 @@ function App() {
       </section>
 
       <section className="form-panel" aria-live="polite">
-        {currentPage === "signup" ? (
+        {isCheckingSession ? (
+          <p role="status">Checking your sign-in...</p>
+        ) : currentPage === "signup" && !currentUser ? (
           <SignUpPage
             onSignUp={handleSignUp}
             onShowSignIn={() => {
@@ -74,7 +114,7 @@ function App() {
         ) : (
           <SignInPage
             notice={notice}
-            signedInUsername={signedInUsername}
+            signedInUsername={currentUser?.username || ""}
             onSignIn={handleSignIn}
             onSignOut={handleSignOut}
             onShowSignUp={() => {
@@ -84,8 +124,8 @@ function App() {
           />
         )}
         <p className="demo-note">
-          Passwords are protected on the server. Sign-in is a learning demo and
-          does not create a persistent session yet.
+          Passwords are protected on the server. Your sign-in is maintained
+          with a secure session cookie.
         </p>
       </section>
 

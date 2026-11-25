@@ -31,9 +31,9 @@ function SignUpPage({ onSignUp, onShowSignIn }) {
 
   return (
     <AuthCard
-      eyebrow="CREATE YOUR ACCOUNT"
-      title="Create your Hospital Management System account"
-      description="A few details and you're ready to go."
+      eyebrow="PATIENT REGISTRATION"
+      title="Create your patient account"
+      description="Sign up to find doctors and manage your appointments."
       footer={
         <>
           Already have an account?{" "}

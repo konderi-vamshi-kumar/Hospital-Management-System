@@ -32,7 +32,7 @@ function SignUpPage({ onSignUp, onShowSignIn }) {
   return (
     <AuthCard
       eyebrow="CREATE YOUR ACCOUNT"
-      title="Join Student Hub"
+      title="Create your Hospital Management System account"
       description="A few details and you're ready to go."
       footer={
         <>

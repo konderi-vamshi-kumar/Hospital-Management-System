@@ -31,16 +31,16 @@ function App() {
         <a
           className="brand"
           href="#home"
-          aria-label="Student Hub home"
+          aria-label="Hospital Management System home"
           onClick={() => {
             setCurrentPage("signin");
             handleSignOut();
           }}
         >
           <span className="brand-mark" aria-hidden="true">
-            S
+            H
           </span>
-          <span>student hub</span>
+          <span>Hospital Management System</span>
         </a>
         <span className="header-note">A good place to get started</span>
       </header>
@@ -90,7 +90,7 @@ function App() {
       </section>
 
       <footer className="site-footer">
-        <span>STUDENT HUB</span>
+        <span>HOSPITAL MANAGEMENT SYSTEM</span>
         <span>Made for learning, one step at a time.</span>
       </footer>
     </main>

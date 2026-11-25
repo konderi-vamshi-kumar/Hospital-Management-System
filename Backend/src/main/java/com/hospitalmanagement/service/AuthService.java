@@ -1,15 +1,17 @@
 package com.hospitalmanagement.service;
 
+import com.hospitalmanagement.dto.HospitalMembershipResponse;
 import com.hospitalmanagement.dto.UserResponse;
-import com.hospitalmanagement.exception.InvalidCredentialsException;
 import com.hospitalmanagement.exception.InvalidInputException;
 import com.hospitalmanagement.exception.UsernameAlreadyExistsException;
 import com.hospitalmanagement.model.User;
 import com.hospitalmanagement.repository.UserRepository;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -22,6 +24,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public UserResponse signUp(String username, String password) {
         String cleanUsername = username.trim();
 
@@ -37,28 +40,54 @@ public class AuthService {
 
         try {
             userRepository.insert(cleanUsername, passwordHash);
+            User user = userRepository.findByUsername(cleanUsername)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "The new account could not be found."
+                    ));
+            userRepository.insertGlobalRole(user.id(), "PATIENT");
+            return toUserResponse(user);
         } catch (DataIntegrityViolationException exception) {
             throw new UsernameAlreadyExistsException();
         }
+    }
 
-        User user = userRepository.findByUsername(cleanUsername)
-                .orElseThrow(() -> new IllegalStateException("The new account could not be found."));
-
+    @Transactional(readOnly = true)
+    public UserResponse currentUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("The signed-in account could not be found."));
         return toUserResponse(user);
     }
 
-    public UserResponse signIn(String username, String password) {
-        User user = userRepository.findByUsername(username.trim())
-                .orElseThrow(InvalidCredentialsException::new);
-
-        if (!passwordEncoder.matches(password, user.passwordHash())) {
-            throw new InvalidCredentialsException();
+    @Transactional
+    public void ensureSuperAdmin(String username, String password) {
+        if (!userRepository.existsByUsername(username)) {
+            userRepository.insert(username, passwordEncoder.encode(password));
         }
 
-        return toUserResponse(user);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException(
+                        "The configured super-admin account could not be found."
+                ));
+        userRepository.removeGlobalRole(user.id(), "PATIENT");
+        userRepository.insertGlobalRole(user.id(), "SUPER_ADMIN");
     }
 
     private UserResponse toUserResponse(User user) {
-        return new UserResponse(user.id(), user.username(), user.createdAt());
+        List<HospitalMembershipResponse> memberships = userRepository
+                .findHospitalMembershipsByUserId(user.id())
+                .stream()
+                .map(membership -> new HospitalMembershipResponse(
+                        membership.hospitalId(),
+                        membership.role(),
+                        membership.status()
+                ))
+                .toList();
+        return new UserResponse(
+                user.id(),
+                user.username(),
+                user.createdAt(),
+                userRepository.findGlobalRolesByUserId(user.id()),
+                memberships
+        );
     }
 }

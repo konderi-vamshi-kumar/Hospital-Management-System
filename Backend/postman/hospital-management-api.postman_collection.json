@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "04e013a7-6cb2-4763-a9bc-ccb08a86a1d1",
     "name": "Hospital Management System API",
-    "description": "Try the local sign-up and sign-in endpoints. Run Sign up before Sign in.",
+    "description": "Try patient sign-up and session authentication. Run Get CSRF token before state-changing requests.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -17,9 +17,46 @@
     {
       "key": "password",
       "value": "LearnJava123!"
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
     }
   ],
   "item": [
+    {
+      "name": "Get CSRF token",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/csrf",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "csrf"
+          ]
+        },
+        "description": "Fetches the CSRF token and sets the matching cookie in Postman's cookie jar."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('CSRF token was issued', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json().token).to.be.a('string');",
+              "});",
+              "pm.collectionVariables.set('csrfToken', pm.response.json().token);"
+            ]
+          }
+        }
+      ]
+    },
     {
       "name": "Sign up",
       "request": {
@@ -28,6 +65,10 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-XSRF-TOKEN",
+            "value": "{{csrfToken}}"
           }
         ],
         "body": {
@@ -50,7 +91,7 @@
             "signup"
           ]
         },
-        "description": "Creates a user. The password is stored as a BCrypt hash, never as plain text."
+        "description": "Creates a patient account. The password is stored as a BCrypt hash, never as plain text."
       },
       "event": [
         {
@@ -63,6 +104,9 @@
               "});",
               "pm.test('Response does not include a password hash', function () {",
               "    pm.expect(pm.response.json()).to.not.have.property('passwordHash');",
+              "});",
+              "pm.test('Account has the patient role', function () {",
+              "    pm.expect(pm.response.json().roles).to.include('PATIENT');",
               "});",
               "pm.collectionVariables.set('username', pm.response.json().username);"
             ]
@@ -78,6 +122,10 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-XSRF-TOKEN",
+            "value": "{{csrfToken}}"
           }
         ],
         "body": {
@@ -100,7 +148,7 @@
             "signin"
           ]
         },
-        "description": "Checks the username and password against the saved account."
+        "description": "Checks the credentials and starts an HTTP-only session."
       },
       "event": [
         {
@@ -113,11 +161,56 @@
               "});",
               "pm.test('Response does not include a password hash', function () {",
               "    pm.expect(pm.response.json()).to.not.have.property('passwordHash');",
+              "});",
+              "pm.test('Sign-in created a patient session', function () {",
+              "    pm.expect(pm.response.json().roles).to.include('PATIENT');",
               "});"
             ]
           }
         }
       ]
+    },
+    {
+      "name": "Current user",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        },
+        "description": "Checks the active session and the signed-in user's roles."
+      }
+    },
+    {
+      "name": "Sign out",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-XSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "signout"
+          ]
+        },
+        "description": "Invalidates the current session."
+      }
     }
   ],
   "event": [

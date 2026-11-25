@@ -1,7 +1,8 @@
 # Hospital Management System API
 
-This is a small Java backend for the React app in `../Frontend`. It uses
-Spring Boot for HTTP endpoints and SQLite for a local database file.
+This is the Java backend for the React app in `../Frontend`. It uses Spring
+Boot, Spring Security, and SQLite. The current authentication flow creates
+patient accounts and maintains sign-in using an HTTP-only session cookie.
 
 ## What you need
 
@@ -38,8 +39,28 @@ Open a terminal in the `Backend` folder:
 .\mvnw.cmd spring-boot:run
 ```
 
-When the server is ready, it listens at `http://localhost:8080`. The first
-start creates `Backend/hospital-management.db` and its `users` table.
+When the server is ready, it listens at `http://localhost:8080`. Startup
+creates the SQLite database tables defined in `src/main/resources/schema.sql`.
+
+### Configure the platform super admin
+
+The application does not create a default super-admin account. Configure one
+using environment variables before starting the backend:
+
+```powershell
+$env:SUPER_ADMIN_USERNAME = "your_admin_name"
+$env:SUPER_ADMIN_PASSWORD = "use-a-unique-password-of-at-least-12-characters"
+.\mvnw.cmd spring-boot:run
+```
+
+The username must contain 3-30 letters, numbers, or underscores. The password
+must be at least 12 characters and no more than 72 UTF-8 bytes. The password
+is BCrypt-hashed before storage. If the configured username already exists,
+startup grants that account the super-admin role without changing its
+password. Do not put real credentials in source files.
+
+For local HTTP development, the session cookie is configured for localhost.
+For an HTTPS deployment, set `SESSION_COOKIE_SECURE=true`.
 
 Run the backend tests with:
 
@@ -57,7 +78,8 @@ npm.cmd run dev
 ```
 
 Open the address printed by Vite (usually `http://localhost:5173`). The
-frontend sends sign-up and sign-in requests to `http://localhost:8080`.
+frontend sends requests to `http://localhost:8080`, obtains a CSRF token, and
+uses the session cookie for authenticated requests.
 To use a different backend address, copy `.env.example` to `.env` in the
 `Frontend` folder and change `VITE_API_BASE_URL`.
 
@@ -70,16 +92,26 @@ PowerShell may block the `npm` PowerShell script on some computers. Using
 2. In Postman, choose **Import** and select
    `Backend/postman/hospital-management-api.postman_collection.json`.
 3. Open the **Hospital Management System API** collection.
-4. Choose **Sign up**, then **Send**. The example uses `hospital_demo` and
+4. Choose **Get CSRF token**, then **Send**.
+5. Choose **Sign up**, then **Send**. The example uses `hospital_demo` and
    `LearnJava123!`.
-5. Choose **Sign in**, then **Send** with the same username and password.
+6. Choose **Sign in**, then **Send** with the same username and password.
+7. Use **Current user** to verify the session, then **Sign out** to end it.
 
 The collection has `baseUrl`, `username`, and `password` variables. Change
 the username before signing up again: usernames must be unique.
 
 ## Endpoints
 
-### Create an account
+### Get a CSRF token
+
+`GET http://localhost:8080/api/auth/csrf`
+
+The response contains a token. The browser and Postman collection send it as
+`X-XSRF-TOKEN`; the matching CSRF cookie is also required for state-changing
+requests.
+
+### Create a patient account
 
 `POST http://localhost:8080/api/auth/signup`
 
@@ -89,6 +121,9 @@ the username before signing up again: usernames must be unique.
   "password": "LearnJava123!"
 }
 ```
+
+Public sign-up creates a patient account only. Hospital staff accounts will be
+provisioned through invitations in a later phase.
 
 Success response: **201 Created**. Passwords must be at least 8 characters;
 usernames must be 3-30 letters, numbers, or underscores.
@@ -104,9 +139,24 @@ usernames must be 3-30 letters, numbers, or underscores.
 }
 ```
 
-Success response: **200 OK**. Duplicate usernames return **409 Conflict**,
-invalid sign-in details return **401 Unauthorized**, and invalid form data
-returns **400 Bad Request**. Error responses include a readable `message`.
+Success response: **200 OK** and an HTTP-only session cookie. Duplicate
+usernames return **409 Conflict**, invalid sign-in details return **401
+Unauthorized**, and invalid form data returns **400 Bad Request**. Error
+responses include a readable `message`.
+
+### Get the signed-in user
+
+`GET http://localhost:8080/api/auth/me`
+
+Requires the session cookie. The response includes global roles and any
+hospital memberships; it never includes a password hash.
+
+### Sign out
+
+`POST http://localhost:8080/api/auth/signout`
+
+Requires the session cookie and CSRF token. Success returns **204 No Content**
+and invalidates the session.
 
 ## Where to find things
 
@@ -116,10 +166,12 @@ returns **400 Bad Request**. Error responses include a readable `message`.
 - `src/main/java/.../model`: describes a saved user.
 - `src/main/java/.../dto`: describes request and response data.
 - `src/main/java/.../exception`: turns expected errors into clear API responses.
-- `src/main/resources/schema.sql`: creates the SQLite users table.
+- `src/main/java/.../security`: loads account roles and formats security errors.
+- `src/main/resources/schema.sql`: creates identity, role, hospital, and membership tables.
 - `src/test/java/...`: checks the sign-up and sign-in endpoints.
 - `postman`: ready-to-import Postman collection.
 
-SQLite stores a BCrypt password hash, not the original password. The sign-in
-endpoint verifies credentials and returns the user, but this learning version
-does not issue a session or token and does not protect other API routes yet.
+SQLite stores a BCrypt password hash, not the original password. Sessions use
+HTTP-only cookies, and POST requests require a CSRF token. This phase defines
+the role and hospital-membership foundations; hospital onboarding and
+tenant-scoped business endpoints are implemented in later phases.

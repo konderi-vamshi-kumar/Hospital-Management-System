@@ -1,6 +1,7 @@
 package com.hospitalmanagement.repository;
 
 import com.hospitalmanagement.model.User;
+import com.hospitalmanagement.model.HospitalMembership;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,5 +51,60 @@ public class UserRepository {
         );
 
         return users.stream().findFirst();
+    }
+
+    public List<String> findGlobalRolesByUserId(long userId) {
+        return jdbcTemplate.queryForList(
+                "SELECT role FROM user_roles WHERE user_id = ? ORDER BY role",
+                String.class,
+                userId
+        );
+    }
+
+    public List<HospitalMembership> findHospitalMembershipsByUserId(long userId) {
+        return jdbcTemplate.query(
+                """
+                SELECT hospital_id, role, status
+                FROM hospital_memberships
+                WHERE user_id = ?
+                ORDER BY hospital_id, role
+                """,
+                (resultSet, rowNumber) -> new HospitalMembership(
+                        resultSet.getLong("hospital_id"),
+                        resultSet.getString("role"),
+                        resultSet.getString("status")
+                ),
+                userId
+        );
+    }
+
+    public boolean hasActiveHospitalMembership(long userId, long hospitalId) {
+        Integer membershipCount = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM hospital_memberships
+                WHERE user_id = ? AND hospital_id = ? AND status = 'ACTIVE'
+                """,
+                Integer.class,
+                userId,
+                hospitalId
+        );
+        return membershipCount != null && membershipCount > 0;
+    }
+
+    public void insertGlobalRole(long userId, String role) {
+        jdbcTemplate.update(
+                "INSERT OR IGNORE INTO user_roles (user_id, role) VALUES (?, ?)",
+                userId,
+                role
+        );
+    }
+
+    public void removeGlobalRole(long userId, String role) {
+        jdbcTemplate.update(
+                "DELETE FROM user_roles WHERE user_id = ? AND role = ?",
+                userId,
+                role
+        );
     }
 }
